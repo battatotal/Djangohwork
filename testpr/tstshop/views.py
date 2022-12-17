@@ -25,9 +25,9 @@ class ProductsAPIView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        if 'image' in serializer.data: #без этой проверки, при наличии товара без фото, выдает ошибку
-            for d in serializer.data: #добавил цикл
-
+        #if 'image' in serializer.data: #без этой проверки, при наличии товара без фото, выдает ошибку
+        for d in serializer.data: #добавил цикл
+            if len(d['image']) > 0:  # без этой проверки, при наличии товара без фото, выдает ошибку
                 adr = re.search(r'/media/images/.*', d['image'][0]['path'])[0].split('.')[0]
                 fmt = d['image'][0]['formats']
                 d['image'][0]['path'] = adr
@@ -49,14 +49,15 @@ class DetailView(generics.GenericAPIView):
         product = self.get_object()
         p = ProductSerializer(product).data
 
-        adr = p['image'][0]['path'].split('.')[0]
-        fmt = p['image'][0]['formats']
-        p['image'][0]['path'] = adr
-        # p['image'][0]['formats'] = [format] + ["webp"]
-        if fmt in ['png', 'jpg', 'PNG', 'JPG']:
-            p['image'][0]['formats'] = [fmt] + ["webp"]
-        else:
-            p['image'][0]['formats'] = [fmt]
+        if len(p['image']) > 0:
+            adr = p['image'][0]['path'].split('.')[0]
+            fmt = p['image'][0]['formats']
+            p['image'][0]['path'] = adr
+            # p['image'][0]['formats'] = [format] + ["webp"]
+            if fmt in ['png', 'jpg', 'PNG', 'JPG']:
+                p['image'][0]['formats'] = [fmt] + ["webp"]
+            else:
+                p['image'][0]['formats'] = [fmt]
         return Response(p)
 
 
